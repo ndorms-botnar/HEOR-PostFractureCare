@@ -1,0 +1,212 @@
+---
+title: "PFC Calculator: model description"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: yes 
+    toc_depth: 4
+    toc_float: yes
+editor_options: 
+  chunk_output_type: console
+
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE, message=FALSE)
+```
+
+```{r}
+library(here)
+library(magick)
+```
+
+## Target population 
+
+### Study population and setting
+The study population is specific to a given country of interest and region within that country, which the user is required to specify. Three countries are currently supported: Spain, Japan, and The Netherlands.<br>
+
+Individuals in the study population have either an index (sentinel) fragility fracture of hip, spine, or other at time zero (when they enter the model). To generate the number of index fractures the user is required to specify:  
+
+* the number of hip, spine and other fractures, or 
+* the number hip fractures (with the numbers of spine and other fractures then generated based on the number of hip fractures), or 
+* the size of the general population (and generate proportion that would be expected to be 50+, and then get counts of fractures based on country-specific rates) 
+<br> 
+
+A default average age of the study population is given (based on country selected), which is the same regardless of fracture site (but this average age can be changed by the user).<br>
+
+### Model outline
+A state-based microsimulation model is used, where individuals pass through the model one-by-one allowing us to condition future risks or prior history. The model is run for monthly cycles over a 5-year time horizon.<br>
+
+The model outline is shown below in Figure 1. Individuals enter in one of the three fracture states: hip, spine, or other fracture. They can then transition to another fracture state (i.e. have another fracture, a refracture), or to the fracture free state. From any state there is also a risk of mortality (i.e. a transition to the death state). 
+The model assumes that an individual can have no more than 2 hip fractures, but there is no limit to the number of possible spine or other fractures. An individual can have no more than one type of fracture during a given monthly cycle.<br>
+
+```{r, fig.show='hold', fig.align = 'left',out.width = "500px", fig.cap ="**Figure 1. Model outline**"}
+knitr::include_graphics(here("documentation", "plots", "model.png"))
+```
+<br>
+
+## Disease logic (outcomes in the absence of treatment)
+The disease logic describes the natural history of the disease in the absence of treatment. After the index fracture, individuals have a risk of having another fracture. 5-year risks for each fracture type are specified which depend on the site of the index fracture and with defaults country specific. These risks are not assumed to be evenly distributed over time. The user can specify the proportion of risk experienced over time, with risks higher closer to the time of initial fracture as the default.<br>
+ 
+If an individual has a subsequent fracture at the same site as their index fracture, the ‘clocks’ for all fractures reset. If an individual has a subsequent fracture at a different site, their risk of refracture for each site is taken from the highest of either 1) the continuation of the risk given their index fracture, or 2) a new risk based on their subsequent fracture. As an example if an individual had an index hip fracture and then a subsequent other fracture, they would only switch to the risks related to other fractures if these risks were higher than those associated with the index hip fracture (taking into account the time since this index hip fracture).<br>
+
+Background risks of mortality also depend on the site of the index fracture. After an index hip or a spine index fracture, risks of mortality are based on estimates from the literature specifically for these populations. After an index other fracture, risks of mortality are based on population life tables specific to each country. As above, after a subsequent fracture the risk of mortality is taken from the highest of either 1) the continuation of the risk given their index fracture, or 2) a new risk based on their subsequent fracture.<br>
+
+## Comparators 
+The model is run under two alternative strategies: 1) current practice (no PFC), and 2) PFC. The implementation of PFC affects outcomes by changing: 
+
+- likelihood of being and time to identification 
+- time to treatment onset
+- medication initiated on, 
+- adherence to medication 
+<br>
+
+### Identification following a fracture
+Following their index fracture, individuals may or may not be identified. The same logic, shown below in Figure 2, applies for both index fractures and any subsequent fractures that occur (ie an individual may be identified at the time of their first fracture but not for a subsequent fracture, or *vice versa*).<br> 
+
+```{r, fig.show='hold', fig.align = 'left',dpi=400,  fig.cap ="**Figure 2. Identification**"}
+knitr::include_graphics(here("documentation", "plots", "Logic-Identification.png"))
+```
+<br>
+Note, these probabilities are country specific.<br>
+
+### Assignment to medication
+#### Time to assignment
+If identified, there is a time window (expressed in months) for individuals to be assigned to a medication (including an option of no medication, see below). As with identification, the same logic, see Figure 3, applies for both index fractures and any subsequent fractures. 
+ 
+```{r, fig.show='hold', fig.align = 'left',dpi=400,   fig.cap ="**Figure 3. Assignment to medication**"}
+knitr::include_graphics(here("documentation", "plots", "Logic-Treatment onset.png"))
+```
+ 
+Note, these probabilities are country specific.<br> 
+ 
+Also to note, for subsequent fractures an individual may have previously been assigned to a medication (e.g. after their index fracture). During the time between identification and assignment to medication, the individual is assumed to remain on the medication that they were previously assigned to (if they were not receiving a medication, they are also assumed to continue not receiving a medication) until they are (re-) assigned medication.<br>
+
+#### Choice of medication
+At the point an individual is assigned medication, as above, they can be assigned to one of: 
+
+- no treatment, 
+- orals (Alendronate, Risedronate, Strontium, Ibandronate, and Raloxifene), 
+- Zoledronate, 
+- Denosumab, or 
+- anabolics (Abaloparatide, Teriparatide, or Romosozumab).  
+<br>
+
+It is assumed that individuals are treatment-naive when entering the model, and so can be assigned to any of these options in the first instance.<br>
+
+For subsequent fractures, an individual may have already been assigned to a medication. At this point, where the logic from the previous section results in them being (re-) assigned, the possible set of new treatments to be assigned depends on their previous treatment assignment. If an individual was previously on no treatment, all treatment assignments (including no treatment again) are possible. If an individual was on one of the orals, they cannot then go to no treatment but all medications are possible (including staying on the same oral or changing to another oral). If they were on zoledronate, then they can remain on it, or switch to denosumab or one of the anabolics. If they were on denosumab they can remain on it or change to one of the anabolics. Finally, if they were on one of the anabolics they can stay on the one they were on or change to the other.<br>
+
+Note, the probabilities for medication choice are country and sex specific.<br> 
+
+### Switching medication 
+It is assumed that once an individual has been assigned to Romosozumab for one year, Abaloparatide for two years, or Teriparatide for two years they will then switch to another medication. The probabilities for which medication they switch to are informed by the medication they were on, the site of their most recent fracture, their sex, and the country.<br>
+
+### Adherence to medication
+#### Primary adherence 
+An individual is assigned to being an adherer or non-adherer to their assigned medication at time of assignment. Once assigned as a non-adherer, an individual remains as being so unless they are assigned a different medication (after a subsequent fracture).<br>
+
+```{r, fig.show='hold', fig.align = 'left', dpi=400,  fig.cap ="**Figure 4. Primary adherence**"}
+knitr::include_graphics(here("documentation", "plots", "Logic-Primary adherence.png"))
+```
+
+Note, the same logic applies for each of the medications (replaced by dashed arrow for brevity). <br>  
+Also note, probabilities of primary adherence to medication are sex and country specific.<br>
+
+#### Adherence at 4 and 12 months
+Adherence is considered again at 4 and 12 months following starting a medication. At these time points an individual previously identified as being an adherer, can then become a non-adherer.<br>
+
+Adherence at 4 and 12 months is influenced by whether an individual has been monitored following their fracture. Therefore, we first determine whether an individual was monitored at 4 and 12 months using the logic described below in Figure 5 for four months (analogous logic is used at 12 months). Adherence at 4 months following assignment to medication is then based on the logic below in Figure 6 (again, with analogous logic used at 12 months).<br>
+
+```{r, fig.show='hold', fig.align = 'left', dpi=400,  fig.cap ="**Figure 5. Assignment to medication**"}
+knitr::include_graphics(here("documentation", "plots", "Logic-4 month monitoring.png"))
+```
+Note, probabilities and sex and country specific.
+<br>
+
+```{r, fig.show='hold', fig.align = 'left', dpi=400,  fig.cap ="**Figure 6. Assignment to medication**"}
+knitr::include_graphics(here("documentation", "plots", "Logic-4 month adhering.png"))
+```
+Note, probabilities and sex and country specific.
+<br>
+
+
+####  Adherence at 24, 36, and 48 months
+Adherence is also considered at 24, 36, and 48 months following starting a medication. Again, at these time points an individual previously identified as being an adherer, can become a non-adherer. Continued adherence at these time points are based on the percentage annual decline of adherence associated with a particular medication after two years, with these probabilities specific to sex, country, and PFC vs. current practice.<br> 
+
+
+### Applying relative risk reductions
+Each of the medications are associated with a specific relative risk reduction for refractures. These relative risks vary by country and type of fracture, but not for current practice compared to PFC.<br> 
+Each of the medications are associated with a time lag, expressed in months, between when an individual initiates one of the medications and the relative risk reduction starts to be applied. This time lag does not vary by country or for current practice compared to PFC. A refracture only affects this time lag if it changes the medication being taken (i.e. a new time lag would be applied for a new drug).<br>
+An individual must be adhering to the medication for any associated relative reduction to be applied.<br>
+
+
+## Example patient trajectories
+```{r, fig.show='hold', fig.align = 'left', dpi=400,  fig.cap ="**Figure 6. Example trajectory (hip fracture followed by treatment)**"}
+knitr::include_graphics(here("documentation", "plots", "Logic-Pathway1.png"))
+``` 
+In this example, the patient enters the model with a index hip fracture. They are identified, and after some time to assignment to medication, they are assigned to one. They adhere to the medication and, after the lag for the medication to have an effect, a relative risk reduction for subsequent fractures is applied. Over the time horizon of the model, no further fractures are observed for this individual.
+<br>
+
+```{r, fig.show='hold', fig.align = 'left', dpi=400,  fig.cap ="**Figure 7. Example trajectory (hip fracture and subsequent other fracture followed by treatment in both cases)**"}
+knitr::include_graphics(here("documentation", "plots", "Logic-Pathway2.png"))
+```
+In this example, the patient enters the model with a index hip fracture. They are identified, and after some time to assignment to medication, they are assigned to one. They adhere to the medication and, after the lag for the medication to have an effect, a relative risk reduction for subsequent fractures is applied. During follow-up, however, a subsequent other fracture is observed. The process of identification and assignment to a medication is then repeated, with the individual assigned to a new medication. After some time for the medication to have an effect, a relative risk reduction associated with this medication is applied.<br>
+
+## Costing 
+### Procedure costs
+After a hip fracture, an individual who is hospitalised can have either hip surgery or no surgery. If they are not hospitalised, they have no surgery.<br>
+
+After a spine fracture, an individual who is hospitalised can have a kyphoplasty, a vertebroplasty, or no surgery. If they are not hospitalised, they can also have a kyphoplasty, a vertebroplasty, or no surgery (the probabilities for which can differ depending on whether they were hospitalised).<br> 
+
+
+After a other fracture, an individual who is hospitalised can have a other surgery or no surgery. If they are not hospitalised, they have no surgery.<br>
+
+Each of these procedures is associated with a cost.<br>
+
+### Hospital costs
+In the same time period (cycle) as a hip fracture occurs, an individual can be hospitalised or not hospitalised.<br> 
+
+In the same time period as a spine fracture occurs, an individual can be hospitalised, not hospitalised.<br> 
+
+In the same time period as a other fracture occurs, an individual can be hospitalised or not hospitalised.<br> 
+
+The cost of a hospitalisation is based on a cost associated with an A&E visit (it is assumed all hospitalisations are preceded by such a visit), a cost associated with the length of stay for the admission.<br>
+
+### Location cost
+At any point in time in the model an individual is considered as living at home with no support, or living at home with support, or living in a long-term care facility.<br>  
+
+Living at home with no support is not associated with any cost. Living at home with support, and living in a long-term care facility are each associated with a cost.<br> 
+
+### Community care cost
+An individual with a spine fracture who is not hospitalised may have a number of community consultations. Each of these community consultations has an associated cost.<br> 
+
+### Clinic cost
+In the time period of a fracture, those individuals not hospitalised may have a clinic visit which is associated with a certain cost.<br> 
+
+### Temporary rehabilitation costs
+An individual may visit temporary rehabilitation during the time period in which a fracture has occurred. This is associated with a length of stay which can vary depending on the site of the fracture. The cost of the visit to temporary rehabilitation is then estimated given the daily cost of temporary rehabilitation.<br> 
+
+### Discharge clinic costs
+There are a number of clinic (hospital outpatient) visits associated with a fracture which can vary depending on site and on whether an individual was hospitalised or not. Each of these clinic visits is associated with a cost.<br> 
+
+### Medication cost
+Individuals can be assigned to a medication at any point in time, but they are not necessarily adhering. For those adhering, a cost of the medication is calculated. This cost can vary depending on the site of an individual’s most recent fracture.<br>
+
+### Fracture prevention staff costs
+There are various types of staff (administrators, nurses, doctors, radiographers, allied health professionals, other types of staff, and, in the case of PFC, PFC administrators) that are expected to spend time associated with identifying, assessing, providing a treatment recommendation, and monitoring an individual with a fracture.<br> 
+Fracture prevention staff costs are then based on the amount of time expected to be spent by each type of staff on each time of activity, and the hourly cost of such staff members.<br> 
+
+### Laboratory testing costs
+An individual can have a lab test following a hip, spine, or other fracture. This test is associated with a cost which can vary depending on the type of fracture.<br> 
+
+### DXA cost
+An individual can have a DXA following a hip, spine, or other fracture. This test is associated with a cost which is the same regardless of type of fracture.<br> 
+
+### Total cost
+The sum of the costs described above.<br> 
+
+### Total cost (excluding location costs)
+Total cost excluding location costs.<br> 
+
+
+

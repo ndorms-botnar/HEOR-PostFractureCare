@@ -1,0 +1,2632 @@
+---
+title: "<br> <br> <br> PFC Calculator results"
+output:
+  html_document:
+    highlight: tango
+    theme: united
+    toc: yes
+    toc_depth: 4
+    toc_float: yes
+params:
+  country: !r FALSE
+  on.ARC: !r FALSE
+editor_options:
+  chunk_output_type: console
+---
+
+```{r options, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE,cache.lazy = FALSE)
+options(scipen=999) 
+options(digits = 4)
+options(knitr.kable.NA = '')
+```
+
+```{r packages}
+suppressMessages(library(ggplot2))
+suppressMessages(library(here))
+suppressMessages(library(dplyr))
+suppressMessages(library(kableExtra))
+```
+
+```{r data}
+country<-params$country
+on.ARC<-params$on.ARC
+
+results.folder<-here("results",country)
+load(paste0(results.folder, "/results.output.RData")) #output.
+
+```
+
+# Set up 
+```{r}
+message(paste0("County: ", output[["country.name"]]))
+message(paste0("Region: ", output[["region.name"]]))
+```
+
+```{r}
+message(paste0("Sentinel fractures: ", output[["specified.fx"]]))
+
+message(paste0("Number of simulations per index fracture and gender: ", output[["n_microsimulation"]]))
+```
+
+# Study population
+```{r}
+nice.num.count<-function(x){
+  for(i in 1:length(x)){
+    x[i]<-  ifelse(x[i]=="", "",
+                   format(as.numeric(x[i]),
+                          big.mark=",", nsmall = 0, digits=0, scientific = FALSE))
+  }
+  x
+}
+
+study_pop_n.tidy<-study_pop_n %>%  
+  mutate(index_fx=
+           ifelse(names=="spine_fx_n.male", "Spine",
+           ifelse(names=="spine_fx_n.female", "Spine",
+           ifelse(names=="hip_fx_n.male", "Hip",
+           ifelse(names=="hip_fx_n.female", "Hip",
+           ifelse(names=="other_fx_n.male", "Other",
+           ifelse(names=="other_fx_n.female", "Other",       
+    NA  ))))))) %>% 
+  mutate(sex=
+           ifelse(names=="spine_fx_n.male", "Male",
+           ifelse(names=="spine_fx_n.female", "Female",
+           ifelse(names=="hip_fx_n.male", "Male",
+           ifelse(names=="hip_fx_n.female", "Female",
+           ifelse(names=="other_fx_n.male", "Male",
+           ifelse(names=="other_fx_n.female", "Female",       
+    NA  ))))))) %>% 
+  mutate(n=nice.num.count(n)) %>% 
+  select(index_fx, sex, n)
+
+ study_pop_n.tidy<-study_pop_n.tidy %>%
+  mutate(index_fx=factor(index_fx, levels = c("Hip", "Spine" , "Other"))) %>%
+  mutate(sex=factor(sex, levels = c("Male", "Female" ))) %>% 
+   arrange(index_fx, sex)
+
+ kable(study_pop_n.tidy,
+      col.names = c("Index fracture", "Sex",
+                    "N")) %>%
+  kable_styling(bootstrap_options = c("striped", "bordered"),
+                 full_width = T)
+```
+
+# Treatment
+## Identified
+### Overall
+```{r, fig.height = 4, fig.width = 7.25}
+output$identified.plot.overall 
+```
+
+### By index fracture
+```{r}
+working.plot <- output$identified.plot.index_fx
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+```
+
+```{r, fig.height=working.height, fig.width = 7.75}
+working.plot
+```
+
+### By sex
+```{r}
+working.plot <- output$identified.plot.sex
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 7.75}
+working.plot
+```
+
+
+### By index fracture and sex
+```{r}
+working.plot <- output$identified.plot.index_fx.sex
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 8.25}
+working.plot
+```
+
+
+## Treated 
+### Overall
+```{r, fig.height = 4, fig.width = 7.25}
+output$treat.plot.overall 
+```
+
+### By index fracture
+```{r}
+working.plot <- output$treat.plot.index_fx
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+```
+
+```{r, fig.height=working.height, fig.width = 7.75}
+working.plot
+```
+
+### By sex
+```{r}
+working.plot <- output$treat.plot.sex
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 7.75}
+working.plot
+```
+
+
+### By index fracture sex
+```{r}
+working.plot <- output$treat.plot.index_fx.sex
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 8.25}
+working.plot
+```
+
+
+### By risk profile
+```{r}
+working.plot <- output$treat.plot.risk.profile
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 7.75}
+working.plot
+```
+
+## Medication
+### Overall
+```{r, fig.height = 4, fig.width = 7.75}
+output$medication.plot.overall 
+```
+
+### By index fracture
+```{r}
+working.plot <- output$medication.plot.index_fx
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+```
+
+```{r, fig.height=working.height, fig.width = 8.25}
+working.plot
+```
+
+### By sex
+```{r}
+working.plot <- output$medication.plot.sex
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 8.25}
+working.plot
+```
+
+
+### By index fracture sex
+```{r}
+working.plot <- output$medication.plot.index_fx.sex
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 8.75}
+working.plot
+```
+
+
+## Adhering
+### Overall
+```{r, fig.height = 4, fig.width = 7.25}
+output$adhering.plot.overall 
+```
+
+### By index fracture
+```{r}
+working.plot <- output$adhering.plot.index_fx
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+```
+
+```{r, fig.height=working.height, fig.width = 7.75}
+working.plot
+```
+
+### By sex
+```{r}
+working.plot <- output$adhering.plot.sex
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 7.75}
+working.plot
+```
+
+
+### By index fracture sex
+```{r}
+working.plot <- output$adhering.plot.index_fx.sex
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 8.25}
+working.plot
+```
+
+
+## Relative risk applied
+### Overall
+```{r, fig.height = 4, fig.width = 7.25}
+output$apply.rr.plot.overall 
+```
+
+### By index fracture
+```{r}
+working.plot <- output$apply.rr.plot.index_fx
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+```
+
+```{r, fig.height=working.height, fig.width = 7.75}
+working.plot
+```
+
+### By sex
+```{r}
+working.plot <- output$apply.rr.plot.sex
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 7.75}
+working.plot
+```
+
+
+### By index fracture sex
+```{r}
+working.plot <- output$apply.rr.plot.index_fx.sex
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 8.25}
+working.plot
+```
+
+
+
+# Social care 
+### Overall
+```{r, fig.height = 4, fig.width = 7.75}
+output$location.plot.overall 
+```
+
+### By index fracture
+```{r}
+working.plot <- output$location.plot.index_fx
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+```
+
+```{r, fig.height=working.height, fig.width = 8.25}
+working.plot
+```
+
+### By sex
+```{r}
+working.plot <- output$location.plot.sex
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 8.25}
+working.plot
+```
+
+
+### By index fracture sex
+```{r}
+working.plot <- output$location.plot.index_fx.sex
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 8.75}
+working.plot
+```
+
+
+
+
+# Health outcomes at one year
+## Subsequent fractures at one year
+### Overall
+```{r}
+output$summary.second.fx.t12
+```
+
+### By index fracture
+```{r}
+output$summary.second.fx.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.second.fx.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.second.fx.t12.index_fx.sex
+```
+
+#### MC error
+
+```{r, fig.height=13, fig.width = 7.75}
+output$mc.fx.plot.subs.fx.t12
+```
+
+## Count of subsequent fractures at one year
+### Overall
+```{r}
+output$summary.subs.fx.count.t12
+```
+
+### By index fracture
+```{r}
+output$summary.subs.fx.count.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.subs.fx.count.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.subs.fx.count.t12.index_fx.sex
+```
+
+# Quality of life at one year
+### Overall
+```{r}
+output$summary.qol.t12
+```
+
+### By index fracture
+```{r}
+output$summary.qol.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.qol.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.qol.t12.index_fx.sex
+```
+
+
+
+# HCRU at one year
+## Procedures 
+### Overall
+```{r}
+output$summary.procedures.t12
+```
+
+### By index fracture
+```{r}
+output$summary.procedures.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.procedures.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.procedures.t12.index_fx.sex
+```
+
+## Hospital length of stay
+### Overall
+```{r}
+output$summary.hosp.los.t12
+```
+
+### By index fracture
+```{r}
+output$summary.hosp.los.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.hosp.los.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.hosp.los.t12.index_fx.sex
+```
+
+## Temporary rehabilitation days
+### Overall
+```{r}
+output$summary.temp.rehab.los.t12
+```
+
+### By index fracture
+```{r}
+output$summary.temp.rehab.los.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.temp.rehab.los.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.temp.rehab.los.t12.index_fx.sex
+```
+
+
+## Community consultations (spine fractures only) 
+### Overall
+```{r}
+output$summary.comm.visits.t12
+```
+
+### By index fracture
+```{r}
+output$summary.comm.visits.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.comm.visits.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.comm.visits.t12.index_fx.sex
+```
+
+## Discharge clinic visits 
+### Overall
+```{r}
+output$summary.discharge.clinic.visits.t12
+```
+
+### By index fracture
+```{r}
+output$summary.discharge.clinic.visits.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.discharge.clinic.visits.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.discharge.clinic.visits.t12.index_fx.sex
+```
+
+
+## Social care
+### Overall
+```{r}
+output$summary.location.t12
+```
+
+### By index fracture
+```{r}
+output$summary.location.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.location.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.location.t12.index_fx.sex
+```
+
+
+
+## Lab tests 
+### Overall
+```{r}
+output$summary.lab.test.t12
+```
+
+### By index fracture
+```{r}
+output$summary.lab.test.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.lab.test.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.lab.test.t12.index_fx.sex
+```
+
+
+## Clinic visits 
+### Overall
+```{r}
+output$summary.clinic.visits.t12
+```
+
+### By index fracture
+```{r}
+output$summary.clinic.visits.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.clinic.visits.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.clinic.visits.t12.index_fx.sex
+```
+
+
+## DXA 
+### Overall
+```{r}
+output$summary.dxa.t12
+```
+
+### By index fracture
+```{r}
+output$summary.dxa.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.dxa.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.dxa.t12.index_fx.sex
+```
+
+
+
+## Doctor minutes
+### Overall
+```{r}
+output$summary.doctor.mins.t12
+```
+
+### By index fracture
+```{r}
+output$summary.doctor.mins.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.doctor.mins.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.doctor.mins.t12.index_fx.sex
+```
+
+
+
+## Nurse minutes
+### Overall
+```{r}
+output$summary.nurse.mins.t12
+```
+
+### By index fracture
+```{r}
+output$summary.nurse.mins.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.nurse.mins.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.nurse.mins.t12.index_fx.sex
+```
+
+
+
+
+## Administrator minutes
+### Overall
+```{r}
+output$summary.administrator.mins.t12
+```
+
+### By index fracture
+```{r}
+output$summary.administrator.mins.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.administrator.mins.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.administrator.mins.t12.index_fx.sex
+```
+
+
+
+
+## Radiographer minutes
+### Overall
+```{r}
+output$summary.radiographer.mins.t12
+```
+
+### By index fracture
+```{r}
+output$summary.radiographer.mins.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.radiographer.mins.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.radiographer.mins.t12.index_fx.sex
+```
+
+
+
+## Allied_health minutes
+### Overall
+```{r}
+output$summary.allied_health.mins.t12
+```
+
+### By index fracture
+```{r}
+output$summary.allied_health.mins.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.allied_health.mins.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.allied_health.mins.t12.index_fx.sex
+```
+
+
+
+
+
+## fls_coordinator minutes
+### Overall
+```{r}
+output$summary.fls_coordinator.mins.t12
+```
+
+### By index fracture
+```{r}
+output$summary.fls_coordinator.mins.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.fls_coordinator.mins.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.fls_coordinator.mins.t12.index_fx.sex
+```
+
+
+
+
+
+
+## Other minutes
+### Overall
+```{r}
+output$summary.other.mins.t12
+```
+
+### By index fracture
+```{r}
+output$summary.other.mins.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.other.mins.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.other.mins.t12.index_fx.sex
+```
+
+
+
+# Costs at one year 
+## Total cost
+### Overall
+```{r}
+output$summary.total.cost.t12
+```
+
+### By index fracture
+```{r}
+output$summary.total.cost.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.total.cost.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.total.cost.t12.index_fx.sex
+```
+
+#### MC error
+
+```{r, fig.height=13, fig.width = 7.75}
+output$mc.fx.plot.tot.cost.t12
+```
+
+
+## Total cost (excluding location costs)
+### Overall
+```{r}
+output$summary.total.cost.excl.location.t12
+```
+
+### By index fracture
+```{r}
+output$summary.total.cost.excl.location.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.total.cost.excl.location.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.total.cost.excl.location.t12.index_fx.sex
+```
+
+
+## Hospital costs
+### Overall
+```{r}
+output$summary.hosp.cost.t12
+```
+
+### By index fracture
+```{r}
+output$summary.hosp.cost.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.hosp.cost.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.hosp.cost.t12.index_fx.sex
+```
+
+
+## Procedure costs
+### Overall
+```{r}
+output$summary.procedure.cost.t12
+```
+
+### By index fracture
+```{r}
+output$summary.procedure.cost.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.procedure.cost.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.procedure.cost.t12.index_fx.sex
+```
+
+
+## Home care costs
+### Overall
+```{r}
+output$summary.location_home_support.cost.t12
+```
+
+### By index fracture
+```{r}
+output$summary.location_home_support.cost.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.location_home_support.cost.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.location_home_support.cost.t12.index_fx.sex
+```
+
+
+## Long term care costs
+### Overall
+```{r}
+output$summary.location_long_term_care.cost.t12
+```
+
+### By index fracture
+```{r}
+output$summary.location_long_term_care.cost.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.location_long_term_care.cost.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.location_long_term_care.cost.t12.index_fx.sex
+```
+
+
+
+## Community care costs
+### Overall
+```{r}
+output$summary.comm.cost.t12
+```
+
+### By index fracture
+```{r}
+output$summary.comm.cost.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.comm.cost.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.comm.cost.t12.index_fx.sex
+```
+
+
+## Clinic cost
+### Overall
+```{r}
+output$summary.clinic.cost.t12
+```
+
+### By index fracture
+```{r}
+output$summary.clinic.cost.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.clinic.cost.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.clinic.cost.t12.index_fx.sex
+```
+
+
+## Temporary rehabilitation costs
+### Overall
+```{r}
+output$summary.temp.rehab.cost.t12
+```
+
+### By index fracture
+```{r}
+output$summary.temp.rehab.cost.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.temp.rehab.cost.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.temp.rehab.cost.t12.index_fx.sex
+```
+
+
+## Discharge clinic costs
+### Overall
+```{r}
+output$summary.discharge.clinic.cost.t12
+```
+
+### By index fracture
+```{r}
+output$summary.discharge.clinic.cost.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.discharge.clinic.cost.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.discharge.clinic.cost.t12.index_fx.sex
+```
+
+
+## Medication costs
+### Overall
+```{r}
+output$summary.medication.cost.t12
+```
+
+### By index fracture
+```{r}
+output$summary.medication.cost.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.medication.cost.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.medication.cost.t12.index_fx.sex
+```
+
+
+## Fracture prevention staff costs
+### Overall
+```{r}
+output$summary.fx_prev.staff.cost.t12
+```
+
+### By index fracture
+```{r}
+output$summary.fx_prev.staff.cost.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.fx_prev.staff.cost.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.fx_prev.staff.cost.t12.index_fx.sex
+```
+
+
+## Labaratory test costs
+### Overall
+```{r}
+output$summary.lab.test.cost.t12
+```
+
+### By index fracture
+```{r}
+output$summary.lab.test.cost.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.lab.test.cost.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.lab.test.cost.t12.index_fx.sex
+```
+
+
+## DXA costs
+### Overall
+```{r}
+output$summary.dxa.cost.t12
+```
+
+### By index fracture
+```{r}
+output$summary.dxa.cost.t12.index_fx
+```
+
+### By sex
+```{r}
+output$summary.dxa.cost.t12.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.dxa.cost.t12.index_fx.sex
+```
+
+
+
+# Subsequent fractures one to two years
+### Overall
+```{r}
+output$summary.second.fx.t12_t24
+```
+
+### By index fracture
+```{r}
+output$summary.second.fx.t12_t24.index_fx
+```
+
+### By sex
+```{r}
+output$summary.second.fx.t12_t24.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.second.fx.t12_t24.index_fx.sex
+```
+
+
+
+# Quality of life one to two years
+### Overall
+```{r}
+output$summary.qol.t12_t24
+```
+
+### By index fracture
+```{r}
+output$summary.qol.t12_t24.index_fx
+```
+
+### By sex
+```{r}
+output$summary.qol.t12_t24.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.qol.t12_t24.index_fx.sex
+```
+
+
+# Costs one to two years
+### Overall
+```{r}
+output$summary.total.cost.t12_t24
+```
+
+### By index fracture
+```{r}
+output$summary.total.cost.t12_t24.index_fx
+```
+
+### By sex
+```{r}
+output$summary.total.cost.t12_t24.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.total.cost.t12_t24.index_fx.sex
+```
+
+
+# Subsequent fractures two to three years
+### Overall
+```{r}
+output$summary.second.fx.t24_t36
+```
+
+### By index fracture
+```{r}
+output$summary.second.fx.t24_t36.index_fx
+```
+
+### By sex
+```{r}
+output$summary.second.fx.t24_t36.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.second.fx.t24_t36.index_fx.sex
+```
+
+
+
+
+# Quality of life two to three years
+### Overall
+```{r}
+output$summary.qol.t24_t36
+```
+
+### By index fracture
+```{r}
+output$summary.qol.t24_t36.index_fx
+```
+
+### By sex
+```{r}
+output$summary.qol.t24_t36.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.qol.t24_t36.index_fx.sex
+```
+
+
+
+
+# Costs two to three years
+### Overall
+```{r}
+output$summary.total.cost.t24_t36
+```
+
+### By index fracture
+```{r}
+output$summary.total.cost.t24_t36.index_fx
+```
+
+### By sex
+```{r}
+output$summary.total.cost.t24_t36.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.total.cost.t24_t36.index_fx.sex
+```
+
+
+
+
+# Subsequent fractures three to four years
+### Overall
+```{r}
+output$summary.second.fx.t36_t48
+```
+
+### By index fracture
+```{r}
+output$summary.second.fx.t36_t48.index_fx
+```
+
+### By sex
+```{r}
+output$summary.second.fx.t36_t48.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.second.fx.t36_t48.index_fx.sex
+```
+
+
+
+
+
+# Quality of life three to four years
+### Overall
+```{r}
+output$summary.qol.t36_t48
+```
+
+### By index fracture
+```{r}
+output$summary.qol.t36_t48.index_fx
+```
+
+### By sex
+```{r}
+output$summary.qol.t36_t48.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.qol.t36_t48.index_fx.sex
+```
+
+
+
+
+# Costs three to four years
+### Overall
+```{r}
+output$summary.total.cost.t36_t48
+```
+
+### By index fracture
+```{r}
+output$summary.total.cost.t36_t48.index_fx
+```
+
+### By sex
+```{r}
+output$summary.total.cost.t36_t48.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.total.cost.t36_t48.index_fx.sex
+```
+
+
+
+
+
+# Subsequent fractures four to five years
+### Overall
+```{r}
+output$summary.second.fx.t48_t60
+```
+
+### By index fracture
+```{r}
+output$summary.second.fx.t48_t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.second.fx.t48_t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.second.fx.t48_t60.index_fx.sex
+```
+
+
+
+
+
+
+# Quality of life four to five years
+### Overall
+```{r}
+output$summary.qol.t48_t60
+```
+
+### By index fracture
+```{r}
+output$summary.qol.t48_t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.qol.t48_t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.qol.t48_t60.index_fx.sex
+```
+
+
+
+
+
+# Costs four to five years
+### Overall
+```{r}
+output$summary.total.cost.t48_t60
+```
+
+### By index fracture
+```{r}
+output$summary.total.cost.t48_t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.total.cost.t48_t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.total.cost.t48_t60.index_fx.sex
+```
+
+
+
+
+
+# Health outcomes at five years
+## Subsequent fractures at five years
+### Overall
+```{r}
+output$summary.second.fx.t60
+```
+
+### By index fracture
+```{r}
+output$summary.second.fx.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.second.fx.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.second.fx.t60.index_fx.sex
+```
+
+#### MC error
+
+```{r, fig.height=13, fig.width = 7.75}
+output$mc.fx.plot.subs.fx.t60 
+```
+
+## Count of subsequent fractures at five years
+### Overall
+```{r}
+output$summary.subs.fx.count.t60
+```
+
+### By index fracture
+```{r}
+output$summary.subs.fx.count.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.subs.fx.count.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.subs.fx.count.t60.index_fx.sex
+```
+
+
+# Subsequent fractures over time
+## Total 
+### Overall
+```{r, fig.height = 4, fig.width = 7.75}
+output$tot.sub.frac.plot
+```
+
+### By index fracture
+```{r}
+working.plot <- output$tot.sub.frac.plot.index_fx
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 8.25}
+working.plot
+```
+
+### By sex
+```{r}
+working.plot <- output$tot.sub.frac.plot.sex
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 8.25}
+working.plot
+```
+
+### By index fracture and sex
+```{r}
+working.plot <- output$tot.sub.frac.plot.index_fx.sex
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 8.75}
+working.plot
+```
+
+
+
+## Difference
+### Overall
+```{r, fig.height = 4, fig.width = 7.75}
+output$sub.frac.plot
+```
+
+### By index fracture
+```{r}
+working.plot <- output$sub.frac.plot.index_fx
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 8.25}
+working.plot
+```
+
+### By sex
+```{r}
+working.plot <- output$sub.frac.plot.sex
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 8.25}
+working.plot
+```
+
+### By index fracture and sex
+```{r}
+working.plot <- output$sub.frac.plot.index_fx.sex
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 8.75}
+working.plot
+```
+
+
+
+# Cumulative incidence of subsequent fracture and death
+### Overall
+```{r, fig.height = 4, fig.width = 7.25}
+output$c_inc 
+```
+
+### By index fracture
+```{r}
+working.plot <- output$c_inc.index_fx 
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+```
+
+```{r, fig.height=working.height, fig.width = 7.75}
+working.plot
+```
+
+### By sex
+```{r}
+working.plot <- output$c_inc.sex
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 7.75}
+working.plot
+```
+
+
+### By index fracture and sex
+```{r}
+working.plot <- output$c_inc.index_fx.sex
+```
+
+```{r}
+rows<-(length(unique(ggplot_build(working.plot)$data[[1]]$PANEL))/2)
+if(rows==1){
+working.height <- 4
+} else {
+working.height <- 4+(rows*3)
+}
+
+
+```
+
+```{r, fig.height=working.height, fig.width = 8.25}
+working.plot
+```
+
+
+
+
+# Quality of life over five years
+### Overall
+```{r}
+output$summary.qol.t60
+```
+
+### By index fracture
+```{r}
+output$summary.qol.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.qol.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.qol.t60.index_fx.sex
+```
+
+
+# Discounted quality of life over five years
+### Overall
+```{r}
+output$summary.discounted.qol.t60
+```
+
+### By index fracture
+```{r}
+output$summary.discounted.qol.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.discounted.qol.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.discounted.qol.t60.index_fx.sex
+```
+
+
+# HCRU over five years
+## Procedures 
+### Overall
+```{r}
+output$summary.procedures.t60
+```
+
+### By index fracture
+```{r}
+output$summary.procedures.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.procedures.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.procedures.t60.index_fx.sex
+```
+
+## Hospital length of stay
+### Overall
+```{r}
+output$summary.hosp.los.t60
+```
+
+### By index fracture
+```{r}
+output$summary.hosp.los.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.hosp.los.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.hosp.los.t60.index_fx.sex
+```
+
+## Hospital length of stay categories
+### Overall
+```{r}
+output$summary.hosp.los.cat
+```
+
+### By index fracture
+```{r}
+output$summary.hosp.los.cat.index_fx
+```
+
+### By sex
+```{r}
+output$summary.hosp.los.cat.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.hosp.los.cat.index_fx.sex
+```
+
+
+## Temporary rehabilitation days
+### Overall
+```{r}
+output$summary.temp.rehab.los.t60
+```
+
+### By index fracture
+```{r}
+output$summary.temp.rehab.los.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.temp.rehab.los.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.temp.rehab.los.t60.index_fx.sex
+```
+
+
+## Community consultations (spine fractures only) 
+### Overall
+```{r}
+output$summary.comm.visits.t60
+```
+
+### By index fracture
+```{r}
+output$summary.comm.visits.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.comm.visits.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.comm.visits.t60.index_fx.sex
+```
+
+
+## Clinic visits
+### Overall
+```{r}
+output$summary.clinic.visits.t60
+```
+
+### By index fracture
+```{r}
+output$summary.clinic.visits.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.clinic.visits.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.clinic.visits.t60.index_fx.sex
+```
+
+
+
+## Social care
+### Overall
+```{r}
+output$summary.location.t60
+```
+
+### By index fracture
+```{r}
+output$summary.location.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.location.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.location.t60.index_fx.sex
+```
+
+
+
+
+## Discharge clinic visits
+### Overall
+```{r}
+output$summary.discharge.clinic.visits.t60
+```
+
+### By index fracture
+```{r}
+output$summary.discharge.clinic.visits.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.discharge.clinic.visits.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.discharge.clinic.visits.t60.index_fx.sex
+```
+
+
+
+
+## Ever in long term care 
+### Overall
+```{r}
+output$summary.ever.ltc
+```
+
+### By index fracture
+```{r}
+output$summary.ever.ltc.index_fx
+```
+
+### By sex
+```{r}
+output$summary.ever.ltc.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.ever.ltc.index_fx.sex
+```
+
+
+
+
+
+
+
+
+## Lab tests
+### Overall
+```{r}
+output$summary.lab.test.t60
+```
+
+### By index fracture
+```{r}
+output$summary.lab.test.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.lab.test.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.lab.test.t60.index_fx.sex
+```
+
+
+
+
+## DXA
+### Overall
+```{r}
+output$summary.dxa.t60
+```
+
+### By index fracture
+```{r}
+output$summary.dxa.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.dxa.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.dxa.t60.index_fx.sex
+```
+
+
+
+
+## Doctor minutes
+### Overall
+```{r}
+output$summary.doctor.mins.t60
+```
+
+### By index fracture
+```{r}
+output$summary.doctor.mins.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.doctor.mins.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.doctor.mins.t60.index_fx.sex
+```
+
+## Administrator minutes
+### Overall
+```{r}
+output$summary.administrator.mins.t60
+```
+
+### By index fracture
+```{r}
+output$summary.administrator.mins.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.administrator.mins.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.administrator.mins.t60.index_fx.sex
+```
+
+
+
+## nurse minutes
+### Overall
+```{r}
+output$summary.nurse.mins.t60
+```
+
+### By index fracture
+```{r}
+output$summary.nurse.mins.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.nurse.mins.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.nurse.mins.t60.index_fx.sex
+```
+
+
+## radiographer minutes
+### Overall
+```{r}
+output$summary.radiographer.mins.t60
+```
+
+### By index fracture
+```{r}
+output$summary.radiographer.mins.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.radiographer.mins.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.radiographer.mins.t60.index_fx.sex
+```
+
+
+## allied_health minutes
+### Overall
+```{r}
+output$summary.allied_health.mins.t60
+```
+
+### By index fracture
+```{r}
+output$summary.allied_health.mins.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.allied_health.mins.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.allied_health.mins.t60.index_fx.sex
+```
+
+
+
+## fls_coordinator minutes
+### Overall
+```{r}
+output$summary.fls_coordinator.mins.t60
+```
+
+### By index fracture
+```{r}
+output$summary.fls_coordinator.mins.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.fls_coordinator.mins.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.fls_coordinator.mins.t60.index_fx.sex
+```
+
+
+
+
+## other minutes
+### Overall
+```{r}
+output$summary.other.mins.t60
+```
+
+### By index fracture
+```{r}
+output$summary.other.mins.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.other.mins.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.other.mins.t60.index_fx.sex
+```
+
+
+
+# Costs over five years 
+## Total cost
+### Overall
+```{r}
+output$summary.total.cost.t60
+```
+
+### By index fracture
+```{r}
+output$summary.total.cost.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.total.cost.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.total.cost.t60.index_fx.sex
+```
+
+#### MC error
+
+```{r, fig.height=13, fig.width = 7.75}
+output$mc.fx.plot.tot.cost.t60
+```
+
+
+## Discounted total cost
+### Overall
+```{r}
+output$summary.discounted.total.cost.t60
+```
+
+### By index fracture
+```{r}
+output$summary.discounted.total.cost.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.discounted.total.cost.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.discounted.total.cost.t60.index_fx.sex
+```
+
+
+
+## Total cost (excluding location costs)
+### Overall
+```{r}
+output$summary.total.cost.excl.location.t60
+```
+
+### By index fracture
+```{r}
+output$summary.total.cost.excl.location.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.total.cost.excl.location.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.total.cost.excl.location.t60.index_fx.sex
+```
+
+
+## Hospital costs
+### Overall
+```{r}
+output$summary.hosp.cost.t60
+```
+
+### By index fracture
+```{r}
+output$summary.hosp.cost.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.hosp.cost.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.hosp.cost.t60.index_fx.sex
+```
+
+
+## Procedure costs
+### Overall
+```{r}
+output$summary.procedure.cost.t60
+```
+
+### By index fracture
+```{r}
+output$summary.procedure.cost.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.procedure.cost.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.procedure.cost.t60.index_fx.sex
+```
+
+
+## Home care costs
+### Overall
+```{r}
+output$summary.location_home_support.cost.t60
+```
+
+### By index fracture
+```{r}
+output$summary.location_home_support.cost.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.location_home_support.cost.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.location_home_support.cost.t60.index_fx.sex
+```
+
+
+## Long term care costs
+### Overall
+```{r}
+output$summary.location_long_term_care.cost.t60
+```
+
+### By index fracture
+```{r}
+output$summary.location_long_term_care.cost.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.location_long_term_care.cost.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.location_long_term_care.cost.t60.index_fx.sex
+```
+
+
+
+## Community care costs
+### Overall
+```{r}
+output$summary.comm.cost.t60
+```
+
+### By index fracture
+```{r}
+output$summary.comm.cost.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.comm.cost.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.comm.cost.t60.index_fx.sex
+```
+
+
+## Clinic cost
+### Overall
+```{r}
+output$summary.clinic.cost.t60
+```
+
+### By index fracture
+```{r}
+output$summary.clinic.cost.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.clinic.cost.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.clinic.cost.t60.index_fx.sex
+```
+
+
+## Temporary rehabilitation costs
+### Overall
+```{r}
+output$summary.temp.rehab.cost.t60
+```
+
+### By index fracture
+```{r}
+output$summary.temp.rehab.cost.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.temp.rehab.cost.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.temp.rehab.cost.t60.index_fx.sex
+```
+
+
+## Discharge clinic costs
+### Overall
+```{r}
+output$summary.discharge.clinic.cost.t60
+```
+
+### By index fracture
+```{r}
+output$summary.discharge.clinic.cost.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.discharge.clinic.cost.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.discharge.clinic.cost.t60.index_fx.sex
+```
+
+
+## Medication costs
+### Overall
+```{r}
+output$summary.medication.cost.t60
+```
+
+### By index fracture
+```{r}
+output$summary.medication.cost.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.medication.cost.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.medication.cost.t60.index_fx.sex
+```
+
+
+## Fracture prevention staff costs
+### Overall
+```{r}
+output$summary.fx_prev.staff.cost.t60
+```
+
+### By index fracture
+```{r}
+output$summary.fx_prev.staff.cost.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.fx_prev.staff.cost.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.fx_prev.staff.cost.t60.index_fx.sex
+```
+
+
+## Labaratory test costs
+### Overall
+```{r}
+output$summary.lab.test.cost.t60
+```
+
+### By index fracture
+```{r}
+output$summary.lab.test.cost.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.lab.test.cost.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.lab.test.cost.t60.index_fx.sex
+```
+
+
+## DXA costs
+### Overall
+```{r}
+output$summary.dxa.cost.t60
+```
+
+### By index fracture
+```{r}
+output$summary.dxa.cost.t60.index_fx
+```
+
+### By sex
+```{r}
+output$summary.dxa.cost.t60.sex
+```
+
+### By index fracture and sex
+```{r}
+output$summary.dxa.cost.t60.index_fx.sex
+```
+
+
+
