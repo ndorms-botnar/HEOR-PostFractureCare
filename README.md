@@ -40,7 +40,7 @@ Once you have this
 - unzip  
 - open PfcCalculator.Rproj (this should open in rstudio, with you entering the package - you will see "PfcCalculator" on the top-right of RStudio if this has worked).  
 
-## Once inside the PfcCalculator Rproj, open R microsim/extras/CodeToRun.R
+## Once inside the `HEOR@PostFractureCare.Rproj`, open R microsim/extras/CodeToRun.R
 The only file you should need to interact with directly is *R microsim/extras/CodeToRun.R* (well, unless if you want to change the number of simulations being run etc). Once inside the Rproj, you can then open this file. 
 
 ## Specify country of interest 
